@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Apple",
+        "symbol": "AAPL",
+        "amount": 10,
+        "purchase_price": 150,
+        "sector": "Technology"
+    },
+    {
+        "name": "Tesla",
+        "symbol": "TSLA",
+        "amount": 5,
+        "purchase_price": 700,
+        "sector": "Automotive"
+    }
+]
