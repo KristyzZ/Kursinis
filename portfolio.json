@@ -1,16 +1,18 @@
 [
     {
-        "name": "Apple",
-        "symbol": "AAPL",
-        "amount": 10,
-        "purchase_price": 150,
-        "sector": "Technology"
+        "type": "stock",
+        "name": "Microsoft",
+        "symbol": "MSFT",
+        "shares": 1.0,
+        "purchase_price": 150.0,
+        "sector": "Tech"
     },
     {
-        "name": "Tesla",
-        "symbol": "TSLA",
-        "amount": 5,
-        "purchase_price": 700,
-        "sector": "Automotive"
+        "type": "stock",
+        "name": "Apple",
+        "symbol": "AAPL",
+        "shares": 2.0,
+        "purchase_price": 150.0,
+        "sector": "tech"
     }
 ]
