@@ -3,16 +3,24 @@
         "type": "stock",
         "name": "Microsoft",
         "symbol": "MSFT",
-        "shares": 1.0,
-        "purchase_price": 150.0,
-        "sector": "Tech"
+        "shares": 3.0,
+        "purchase_price": 103.33333333333333,
+        "sector": "Technology"
     },
     {
         "type": "stock",
         "name": "Apple",
         "symbol": "AAPL",
-        "shares": 2.0,
-        "purchase_price": 150.0,
-        "sector": "tech"
+        "shares": 3.0,
+        "purchase_price": 160.0,
+        "sector": "Technology"
+    },
+    {
+        "type": "stock",
+        "name": "Nvidia",
+        "symbol": "NVDA",
+        "shares": 1.0,
+        "purchase_price": 50.0,
+        "sector": "Technology"
     }
 ]
