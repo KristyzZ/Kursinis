@@ -1,7 +1,6 @@
 import yfinance as yf
 from tkinter import messagebox
 from models.investment import Investment
-#from utils.stock_utils import calculate_weekly_change
 
 class Stock(Investment):
     def __init__(self, name, symbol, shares, purchase_price, sector):

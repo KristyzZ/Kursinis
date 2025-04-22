@@ -9,9 +9,10 @@ if __name__ == "__main__":
 #Investment types
  #unit tests
  #login
- #export to cvs
+ #export to csv/xlsx +
+ #export other data
+
  #watchlist
  #sort
  #total summary
- #clear search
  #choose weekly, monthly, yearly

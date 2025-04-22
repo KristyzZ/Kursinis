@@ -1,12 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from collections import defaultdict
-#from utils.charts import plot_sector_distribution
 from models.portfolio import PortfolioManager
 from models.stock import Stock
 import yfinance as yf
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from utils.file_operations import write_to_csv
 
 
 class PortfolioApp:
@@ -52,6 +52,7 @@ class PortfolioApp:
         ttk.Button(main_frame, text="Show Sector Chart", command=self.show_sector_distribution).grid(row=7, column=0, columnspan=2, pady=5, sticky="ew")
         ttk.Button(main_frame, text="Remove Investment", command=self.remove_investment).grid(row=8, column=0, columnspan=2, pady=5, sticky="ew")
         ttk.Button(main_frame, text="Update Investment", command=self.update_investment).grid(row=9, column=0, columnspan=2, pady=5, sticky="ew")
+        ttk.Button(main_frame, text="Download Portfolio", command=self.export_portfolio).grid(row=10, column=0, columnspan=2, pady=5, sticky="ew")
 
     def show_portfolio(self):
         portfolio_window = tk.Toplevel(self.root)
@@ -69,7 +70,7 @@ class PortfolioApp:
         treeview.grid(row=0, column=0, padx=10, pady=10)
 
         for investment in self.portfolio.investments:
-            current_price = investment.get_current_price()
+            current_price = investment.calculate_value(investment.get_current_price())
             profit_loss = investment.calculate_profit_loss(current_price)
 
             weekly_change = investment.calculate_weekly_change()
@@ -84,6 +85,7 @@ class PortfolioApp:
                 f"${profit_loss:.2f}",
                 weekly_text  # Add the weekly change here
             ))
+
 
         # Double-click event for showing a stock chart (if needed)
         def on_row_double_click(event):
@@ -129,14 +131,13 @@ class PortfolioApp:
             # Save the updated portfolio
             self.portfolio.save_to_file()
 
+            self.clear_inputs()
+
+
         except ValueError:
             messagebox.showerror("Error", "Invalid input data!")
         except Exception as e:
             messagebox.showerror("Error", f"Could not fetch stock data.\n{e}")
-
-    def show_stock_chart(self, symbol):
-        # Example: Implement functionality to show stock chart
-        pass
 
     def show_sector_distribution(self):
         sector_totals = defaultdict(float)
@@ -191,6 +192,7 @@ class PortfolioApp:
         if len(self.portfolio.investments) < original_length:
             self.portfolio.save_to_file()
             messagebox.showinfo("Removed", f"Investment with symbol {symbol} removed.")
+            self.clear_inputs()
         else:
             messagebox.showwarning("Not Found", f"No investment found with symbol {symbol}.")
 
@@ -210,9 +212,21 @@ class PortfolioApp:
                     self.portfolio.save_to_file()
                     messagebox.showinfo("Updated", f"Investment with symbol {symbol} updated.")
                     return
+            self.clear_inputs()
 
             messagebox.showwarning("Not Found", f"No investment found with symbol {symbol}.")
         except ValueError:
             messagebox.showerror("Error", "Invalid input data!")
         except Exception as e:
             messagebox.showerror("Error", f"Could not update investment.\n{e}")
+
+    def export_portfolio(self):
+        write_to_csv('portfolio.json', 'Portfolio.csv')
+        messagebox.showinfo("Exported", "Portfolio exported to portfolio.csv.")
+
+    def clear_inputs(self):
+        # Clear all input fields
+        self.name_entry.delete(0, tk.END)
+        self.symbol_entry.delete(0, tk.END)
+        self.shares_entry.delete(0, tk.END)
+        self.purchase_price_entry.delete(0, tk.END)

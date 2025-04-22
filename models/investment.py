@@ -12,4 +12,4 @@ class Investment(ABC):
         pass
 
     def calculate_profit_loss(self, current_price):
-        return (current_price - self.purchase_price) * self.shares
+        return (current_price - self.purchase_price)
