@@ -38,6 +38,26 @@ class Portfolio:
         except FileNotFoundError:
             pass
 
+    def sort_investments(self, key, reverse=False, period="7d"):
+        def get_sort_value(investment):
+            if key == "name":
+                return investment.name.lower()
+            elif key == "symbol":
+                return investment.symbol.lower()
+            elif key == "shares":
+                return investment.shares
+            elif key == "purchase_price":
+                return investment.purchase_price
+            elif key == "current_price":
+                return investment.get_current_price()
+            elif key == "profit_loss":
+                return investment.calculate_profit_loss(investment.get_current_price())
+            elif key == "change":
+                return investment.calculate_change(period)
+            return 0
+
+        self.investments.sort(key=get_sort_value, reverse=reverse)
+
 class PortfolioManager:
     _instance = None
 

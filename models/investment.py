@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class Investment(ABC):
     def __init__(self, name, symbol, shares, purchase_price):
         self.name = name
@@ -12,4 +13,4 @@ class Investment(ABC):
         pass
 
     def calculate_profit_loss(self, current_price):
-        return (current_price - self.purchase_price)
+        return current_price - self.purchase_price

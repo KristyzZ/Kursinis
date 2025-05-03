@@ -18,30 +18,24 @@ class PortfolioApp:
 
         root.title("Investment Portfolio")
 
-        # Apply some style
         style = ttk.Style()
         style.theme_use("clam")
 
-        # Main frame with padding
         main_frame = ttk.Frame(root, padding="20")
         main_frame.grid(row=0, column=0, sticky="nsew")
 
-        # Company Name
         ttk.Label(main_frame, text="Company Name:").grid(row=0, column=0, sticky="e", pady=5)
         self.name_entry = ttk.Entry(main_frame)
         self.name_entry.grid(row=0, column=1, pady=5)
 
-        # Symbol
         ttk.Label(main_frame, text="Symbol:").grid(row=1, column=0, sticky="e", pady=5)
         self.symbol_entry = ttk.Entry(main_frame)
         self.symbol_entry.grid(row=1, column=1, pady=5)
 
-        # Shares
         ttk.Label(main_frame, text="Shares:").grid(row=2, column=0, sticky="e", pady=5)
         self.shares_entry = ttk.Entry(main_frame)
         self.shares_entry.grid(row=2, column=1, pady=5)
 
-        # Purchase Price
         ttk.Label(main_frame, text="Purchase Price:").grid(row=3, column=0, sticky="e", pady=5)
         self.purchase_price_entry = ttk.Entry(main_frame)
         self.purchase_price_entry.grid(row=3, column=1, pady=5)
@@ -55,45 +49,95 @@ class PortfolioApp:
         ttk.Button(main_frame, text="Download Portfolio", command=self.export_portfolio).grid(row=10, column=0, columnspan=2, pady=5, sticky="ew")
 
     def show_portfolio(self):
+        sort_keys = {
+            "Name": "name",
+            "Symbol": "symbol",
+            "Shares": "shares",
+            "Purchase Price": "purchase_price",
+            "Current Price": "current_price",
+            "Profit/Loss": "profit_loss",
+            "Change": "change"
+        }
+
+        def update_treeview_with_change(period):
+            sort_key = sort_keys.get(sort_var.get(), "name")
+            yf_period = {
+                "daily": "1d",
+                "weekly": "7d",
+                "monthly": "1mo",
+                "yearly": "1y"
+            }.get(period, "7d")
+
+            self.portfolio.sort_investments(sort_key, reverse_var.get(), yf_period)
+
+            treeview.delete(*treeview.get_children())
+            treeview.heading("Change", text=f"{period.capitalize()} Change")
+
+            total = 0
+
+            for investment in self.portfolio.investments:
+                current_price = investment.get_current_price()
+                value = investment.calculate_value(current_price)
+                profit_loss = investment.calculate_profit_loss(current_price)
+                total += value
+
+                change = investment.calculate_change(yf_period)
+                change_text = f"{change:+.2f}%" if change is not None else "N/A"
+
+                treeview.insert("", "end", values=(
+                    investment.name,
+                    investment.symbol,
+                    investment.shares,
+                    f"${investment.purchase_price:.2f}",
+                    f"${current_price:.2f}",
+                    f"${profit_loss:.2f}",
+                    change_text
+                ))
+
+            total_value_var.set(f"Total Portfolio Value: ${total:.2f}")
+
         portfolio_window = tk.Toplevel(self.root)
         portfolio_window.title("Investment Portfolio")
 
-        # Create a treeview to display the portfolio
-        columns = ("Name", "Symbol", "Shares", "Purchase Price", "Current Price", "Profit/Loss", "Weekly Change")
-        treeview = ttk.Treeview(portfolio_window, columns=columns, show="headings")
+        ttk.Label(portfolio_window, text="Change Period:").grid(row=0, column=0, sticky="w", padx=10)
+        period_var = tk.StringVar(value="weekly")
+        period_dropdown = ttk.Combobox(portfolio_window, textvariable=period_var,
+                                       values=["daily", "weekly", "monthly", "yearly"], state="readonly")
+        period_dropdown.grid(row=0, column=1, sticky="w")
 
-        # Set headings
+        ttk.Label(portfolio_window, text="Sort by:").grid(row=1, column=0, sticky="w", padx=10)
+        sort_var = tk.StringVar(value="Name")
+        sort_dropdown = ttk.Combobox(portfolio_window, textvariable=sort_var,
+                                     values=list(sort_keys.keys()), state="readonly")
+        sort_dropdown.grid(row=1, column=1, sticky="w")
+
+        reverse_var = tk.BooleanVar()
+        reverse_check = ttk.Checkbutton(portfolio_window, text="Descending", variable=reverse_var)
+        reverse_check.grid(row=1, column=2, sticky="w")
+
+        columns = ("Name", "Symbol", "Shares", "Purchase Price", "Current Price", "Profit/Loss", "Change")
+        treeview = ttk.Treeview(portfolio_window, columns=columns, show="headings")
         for col in columns:
             treeview.heading(col, text=col)
             treeview.column(col, anchor="center", width=120)
+        treeview.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
 
-        treeview.grid(row=0, column=0, padx=10, pady=10)
+        total_value_var = tk.StringVar()
+        total_label = ttk.Label(portfolio_window, textvariable=total_value_var, font=("Arial", 12, "bold"))
+        total_label.grid(row=3, column=0, columnspan=3, padx=10, pady=(0, 10))
 
-        for investment in self.portfolio.investments:
-            current_price = investment.calculate_value(investment.get_current_price())
-            profit_loss = investment.calculate_profit_loss(current_price)
-
-            weekly_change = investment.calculate_weekly_change()
-            weekly_text = f"{weekly_change:+.2f}%" if weekly_change is not None else "N/A"
-
-            treeview.insert("", "end", values=(
-                investment.name,
-                investment.symbol,
-                investment.shares,
-                f"${investment.purchase_price:.2f}",
-                f"${current_price:.2f}",
-                f"${profit_loss:.2f}",
-                weekly_text  # Add the weekly change here
-            ))
-
-
-        # Double-click event for showing a stock chart (if needed)
         def on_row_double_click(event):
             selected_item = treeview.selection()[0]
             symbol = treeview.item(selected_item, 'values')[1]
             self.show_stock_chart(symbol)
 
         treeview.bind("<Double-1>", on_row_double_click)
+
+        period_dropdown.bind("<<ComboboxSelected>>", lambda e: update_treeview_with_change(period_var.get()))
+        sort_dropdown.bind("<<ComboboxSelected>>", lambda e: update_treeview_with_change(period_var.get()))
+        reverse_check.config(command=lambda: update_treeview_with_change(period_var.get()))
+
+        update_treeview_with_change("weekly")
 
     def add_investment(self):
         try:
@@ -104,11 +148,9 @@ class PortfolioApp:
             stock_info = yf.Ticker(symbol).info
             sector = stock_info.get("sector", "Unknown")
 
-            # Check if investment with the same symbol already exists
             existing_stock = next((inv for inv in self.portfolio.investments if inv.symbol == symbol), None)
 
             if existing_stock:
-                # Merge the new investment with the existing one
                 total_shares = existing_stock.shares + new_shares
                 total_value = (existing_stock.shares * existing_stock.purchase_price) + (new_shares * new_purchase_price)
                 average_price = total_value / total_shares
@@ -121,14 +163,12 @@ class PortfolioApp:
                 messagebox.showinfo("Updated",
                                     f"Added {new_shares} shares to existing {symbol} investment.\nNew pruchase price: ${average_price:.2f}")
             else:
-                # Create new stock if it doesn't exist
                 stock = Stock(name, symbol, new_shares, new_purchase_price, sector)
                 self.portfolio.add_investment(stock)
                 stock.get_current_price()
 
                 messagebox.showinfo("Added", f"Investment in {name} added!")
 
-            # Save the updated portfolio
             self.portfolio.save_to_file()
 
             self.clear_inputs()
@@ -154,7 +194,6 @@ class PortfolioApp:
         sectors = list(sector_totals.keys())
         values = list(sector_totals.values())
 
-        # Plot pie chart
         plt.figure(figsize=(6, 6))
         plt.pie(values, labels=sectors, autopct='%1.1f%%', startangle=140)
         plt.title("Investment Distribution by Sector")
@@ -205,7 +244,6 @@ class PortfolioApp:
                     inv.shares = float(self.shares_entry.get())
                     inv.purchase_price = float(self.purchase_price_entry.get())
 
-                    # Update sector in case symbol has changed company
                     stock_info = yf.Ticker(symbol).info
                     inv.sector = stock_info.get("sector", "Unknown")
 
@@ -225,7 +263,6 @@ class PortfolioApp:
         messagebox.showinfo("Exported", "Portfolio exported to portfolio.csv.")
 
     def clear_inputs(self):
-        # Clear all input fields
         self.name_entry.delete(0, tk.END)
         self.symbol_entry.delete(0, tk.END)
         self.shares_entry.delete(0, tk.END)
