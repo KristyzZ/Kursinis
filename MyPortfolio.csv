@@ -1,5 +1,5 @@
 Type,Name,Symbol,Shares,Purchase Price,Sector
 stock,Apple,AAPL,3,160,Technology
 stock,Microsoft,MSFT,2,300,Technology
-stock,Tesla,TSLA,1,12,Consumer Cyclical
 stock,nvidia,NVDA,2,10,Technology
+stock,Tesla,TSLA,4,25,Consumer Cyclical
